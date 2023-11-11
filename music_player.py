@@ -29,10 +29,6 @@ class Music_player():
 
     def toggle_loop(self):
         self.loop = not self.loop
-        if not self.loop:
-            self.queue = self.queue[1:]
-        elif self.previous_song[1] != None:
-            self.queue.insert(0, self.previous_song[1])
     
     def is_current_and_previous_same(self):
         return self.previous_song[0] == self.previous_song[1] != None
