@@ -13,7 +13,7 @@ def get_token():
 def setup():
     intents = discord.Intents.default()
     intents.message_content = True
-    return commands.Bot(command_prefix='>', intents=intents)
+    return commands.Bot(command_prefix='<', intents=intents)
 
 token = get_token()
 bot = setup()
@@ -48,14 +48,14 @@ async def play(ctx, url):
         await ctx.send(f'Added "{yt.title}" as next in queue')
         return
         
-    if music_player.previous_song[1] == None:
-        music_player.previous_song[1] = url
+    if music_player.current_song == None:
+        music_player.current_song = url
 
     async with ctx.typing():
         player = await Yt.from_url(url, loop=bot.loop, stream=True)
         ctx.voice_client.play(player, after=lambda e: asyncio.run_coroutine_threadsafe(play_next_song(ctx), bot.loop))
 
-    if music_player.loop and (now_playing_msg is not None) and music_player.previous_song[1] == url:
+    if music_player.loop and (now_playing_msg is not None) and music_player.current_song == url:
         same_song_count += 1
         post = "nd" if same_song_count == 2 else "rd" if same_song_count == 3 else "th"
         now_playing_msg = await now_playing_msg.edit(content=f'Now playing: {player.title} for the {same_song_count}{post} time')
@@ -65,7 +65,7 @@ async def play(ctx, url):
 
 async def play_next_song(ctx):
     if music_player.loop:
-        await play(ctx, music_player.get_previous_song())
+        await play(ctx, music_player.get_current_song())
     elif music_player.has_next():
         await play(ctx, music_player.get_next_song())
     else:
@@ -75,7 +75,8 @@ async def play_next_song(ctx):
 @bot.command(name='skip', help='Skips the current song')
 async def skip(ctx):
     ctx.voice_client.stop()
-    music_player.toggle_loop()
+    if music_player.loop:
+        music_player.toggle_loop()
     await ctx.send('Skipped')
     await play_next_song(ctx)
 
